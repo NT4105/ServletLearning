@@ -7,14 +7,10 @@
     </head>
     <body>
         <h1>Update Product</h1>
-        <%
-            String error = (String) request.getAttribute("msg");
-            if (error != null) {
-        %>
+        <% String error = (String) request.getAttribute("msg"); 
+           if (error != null) { %>
         <p style="color: red;"><%=error%></p>
-        <%
-            }
-        %>
+        <% } %>
         <form action="Product" method="POST">
             <input type="hidden" name="id" value="${product.id}">
             
@@ -32,19 +28,12 @@
 
             <label for="category">Category:</label>
             <select id="category" name="category" required>
-                <%
-                    List<Category> categories = (List<Category>) request.getAttribute("categories");
-                    if (categories != null) {
-                        for (Category category : categories) {
-                %>
-                <option value="<%= category.getId()%>" 
-                        <%= (category.getId() == ((Product)request.getAttribute("product")).getCategory().getId()) ? "selected" : "" %>>
-                    <%= category.getName()%>
-                </option>
-                <%
-                        }
-                    }
-                %>
+                <c:forEach items="${categories}" var="category">
+                    <option value="${category.id}" 
+                            ${category.id == product.category.id ? 'selected' : ''}>
+                        ${category.name}
+                    </option>
+                </c:forEach>
             </select><br><br>
             
             <input type="hidden" name="action" value="update">
