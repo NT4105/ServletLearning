@@ -92,17 +92,25 @@ public class ProductController extends HttpServlet {
             // get search criterias
             String categoryIdRaw = request.getParameter("category");
             String productName = request.getParameter("productName");
+            String minPriceRaw = request.getParameter("minPrice");
+            String maxPriceRaw = request.getParameter("maxPrice");
 
-            // validate search fields only when search criterias a string
             Integer categoryId = null;
+            Float minPrice = null;
+            Float maxPrice = null;
+
             if (categoryIdRaw != null && !categoryIdRaw.isEmpty()) {
-                SearchProductDTO searchDTO = new SearchProductDTO(categoryIdRaw, productName);
-                searchDTO.validate();
                 categoryId = Integer.parseInt(categoryIdRaw);
+            }
+            if (minPriceRaw != null && !minPriceRaw.isEmpty()) {
+                minPrice = Float.parseFloat(minPriceRaw);
+            }
+            if (maxPriceRaw != null && !maxPriceRaw.isEmpty()) {
+                maxPrice = Float.parseFloat(maxPriceRaw);
             }
 
             // get search data
-            List<Product> list = productDAO.list(productName, categoryId);
+            List<Product> list = productDAO.list(productName, categoryId, minPrice, maxPrice);
             if (list != null && !list.isEmpty()) {
                 request.setAttribute("products", list);
             } else {
@@ -112,12 +120,14 @@ public class ProductController extends HttpServlet {
             // hold search criteria on search bar for next request
             request.setAttribute("productName", productName);
             request.setAttribute("category", categoryIdRaw);
+            request.setAttribute("minPrice", minPriceRaw);
+            request.setAttribute("maxPrice", maxPriceRaw);
 
         }
         // catch (ValidationException ex) {
         // request.setAttribute("validationErrors", ex.getErrors());
         // }
-        catch (ValidationException | InvalidDataException ex) {
+        catch (InvalidDataException ex) {
             request.setAttribute("msg", ex.getMessage());
         } finally {
             request.getRequestDispatcher(LIST_VIEW).forward(request, response);
@@ -157,11 +167,10 @@ public class ProductController extends HttpServlet {
             } else {
                 response.sendRedirect(LIST);
             }
-        }
-        // catch (ValidationException ex) {
-        // request.setAttribute("validationErrors", ex.getErrors());
-        // }
-        catch (ValidationException | InvalidDataException ex) {
+        } catch (ValidationException ex) {
+            request.setAttribute("msg", ex.getMessage());
+            request.getRequestDispatcher(PREPARE_CREATE).forward(request, response);
+        } catch (InvalidDataException ex) {
             request.setAttribute("msg", ex.getMessage());
             request.getRequestDispatcher(PREPARE_CREATE).forward(request, response);
         }
@@ -189,8 +198,7 @@ public class ProductController extends HttpServlet {
     }
 
     private void update(HttpServletRequest request, HttpServletResponse response, CategoryDAO categoryDAO,
-            ProductDAO productDAO)
-            throws ServletException, IOException {
+            ProductDAO productDAO) throws ServletException, IOException {
         String id = request.getParameter("id");
         String name = request.getParameter("name");
         String price = request.getParameter("price");
@@ -206,6 +214,7 @@ public class ProductController extends HttpServlet {
                 throw new InvalidDataException("Category not found!");
             }
 
+            // Tạo đối tượng Product sau khi xác thực thành công
             Product product = new Product(name, Float.parseFloat(price),
                     Integer.parseInt(productYear), image, category);
             product.setId(Integer.parseInt(id));
@@ -215,9 +224,12 @@ public class ProductController extends HttpServlet {
                 throw new InvalidDataException("Cannot update product!");
             }
             response.sendRedirect(LIST);
-        } catch (ValidationException | InvalidDataException ex) {
+        } catch (ValidationException ex) {
             request.setAttribute("msg", ex.getMessage());
-            prepareUpdate(request, response, categoryDAO, productDAO);
+            prepareUpdate(request, response, categoryDAO, productDAO); // Chuyển hướng về trang cập nhật
+        } catch (InvalidDataException ex) {
+            request.setAttribute("msg", ex.getMessage());
+            prepareUpdate(request, response, categoryDAO, productDAO); // Chuyển hướng về trang cập nhật
         }
     }
 
