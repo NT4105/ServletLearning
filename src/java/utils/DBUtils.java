@@ -1,33 +1,29 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author vothimaihoa
- */
 public class DBUtils {
-    private static final String DB_NAME = "MvcDemo";
-    private static final String DB_USER_NAME = "SA";
-    private static final String DB_PASSWORD = "12345"; // cac ban nen de la 12345 vi de PE de vay
 
-    public static Connection getConnection() throws ClassNotFoundException, SQLException {
-        Connection conn = null;
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=" + DB_NAME;
+    private static final String hostname = "localhost";
+    private static final String port = "1433";
+    private static final String databaseName = "";
+    private static final String username = "SA";
+    private static final String password = "12345";
 
-        // Add debug logging
-        System.out.println("Attempting database connection to: " + url);
+    private static final String url = "jdbc:sqlserver://" + hostname + ":" + port + ";databaseName=" + databaseName;
 
-        conn = DriverManager.getConnection(url, DB_USER_NAME, DB_PASSWORD);
-        System.out.println("Database connection successful");
-        return conn;
+    public static Connection getConnection() {
+        Connection con = null;
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            con = DriverManager.getConnection(url, username, password);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(DBUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return con;
     }
 }
