@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dao;
 
 import entities.Account;
@@ -13,68 +8,37 @@ import java.sql.SQLException;
 import utils.DBUtils;
 import utils.enums.AccountRole;
 
-/**
- *
- * @author vothimaihoa
- */
 public class AccountDAO {
 
-    public Account getById(int id) {
+    public Account getUserInfo(String username, String password) {
         Account a = null;
-        String sql = " SELECT id, username, role "
-                + " from Account a "
-                + " where id = ?";
-        try {
-            Connection con = DBUtils.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs != null) {
-                if (rs.next()) {
-                    a = new Account();
-                    a.setId(rs.getInt("id"));
-                    a.setUsername(rs.getString("username"));
-                    a.setRole((rs.getInt("role") == 1 ? AccountRole.STAFF : AccountRole.CUSTOMER));
-                }
-            }
-            con.close();
-        } catch (ClassNotFoundException ex) {
-            System.out.println("DBUtils not found.");
-        } catch (SQLException ex) {
-            System.out.println("SQL Exception in getting product by id. Details: ");
-            ex.printStackTrace();
-        }
-        return a;
-    }
+        String sql = "SELECT id, username, password, role FROM Account WHERE username = ?";
 
-    public Account getByUsernamePassword(String username, String password) {
-        Account a = null;
-        String sql = " SELECT id, username, role "
-                + " from Account a "
-                + " where username = ? AND password = ?";
         try {
             Connection con = DBUtils.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, username);
-            ps.setString(2, password);
 
-            System.out.println("Attempting login with username: " + username);
+            System.out.println("Checking account for username: " + username);
 
             ResultSet rs = ps.executeQuery();
-            if (rs != null) {
-                if (rs.next()) {
+            if (rs.next()) {
+                // Username exists, check password
+                String storedPassword = rs.getString("password");
+                if (password.equals(storedPassword)) {
+                    // Password matches, create Account object
                     a = new Account();
                     a.setId(rs.getInt("id"));
                     a.setUsername(rs.getString("username"));
-                    a.setRole((rs.getInt("role") == 1 ? AccountRole.STAFF : AccountRole.CUSTOMER));
+                    a.setRole(rs.getInt("role") == 1 ? AccountRole.STAFF : AccountRole.CUSTOMER);
                     System.out.println("Login successful for user: " + username);
                 } else {
-                    System.out.println("No matching user found for username: " + username);
+                    System.out.println("Invalid password for user: " + username);
                 }
+            } else {
+                System.out.println("Username not found: " + username);
             }
             con.close();
-        } catch (ClassNotFoundException ex) {
-            System.out.println("DBUtils not found: " + ex.getMessage());
         } catch (SQLException ex) {
             System.out.println("SQL Exception in login. Details: ");
             ex.printStackTrace();
@@ -83,7 +47,9 @@ public class AccountDAO {
     }
 
     public boolean register(String username, String password, int role) {
-        if (isUsernameExists(username)) {
+        // First check if username exists
+        Account existingAccount = checkUsername(username);
+        if (existingAccount != null) {
             System.out.println("Username already exists: " + username);
             return false;
         }
@@ -107,29 +73,30 @@ public class AccountDAO {
             System.out.println("SQL Error in register: " + ex.getMessage());
             ex.printStackTrace();
             return false;
-        } catch (ClassNotFoundException ex) {
-            System.out.println("Database connection error: " + ex.getMessage());
-            return false;
         }
     }
 
-    private boolean isUsernameExists(String username) {
-        String sql = "SELECT COUNT(*) FROM Account WHERE username = ?";
+    // Helper method to check if username exists
+    private Account checkUsername(String username) {
+        Account account = null;
+        String sql = "SELECT id, username, password, role FROM Account WHERE username = ?";
         try {
             Connection con = DBUtils.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
-                int count = rs.getInt(1);
-                System.out.println("Username " + username + " exists check: " + (count > 0));
-                con.close();
-                return count > 0;
+                account = new Account();
+                account.setId(rs.getInt("id"));
+                account.setUsername(rs.getString("username"));
+                account.setPassword(rs.getString("password"));
+                account.setRole(rs.getInt("role") == 1 ? AccountRole.STAFF : AccountRole.CUSTOMER);
             }
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println("Error checking username: " + ex.getMessage());
         }
-        return false;
+        return account;
     }
 }
