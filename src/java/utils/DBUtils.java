@@ -10,7 +10,7 @@ public class DBUtils {
 
     private static final String hostname = "localhost";
     private static final String port = "1433";
-    private static final String databaseName = "";
+    private static final String databaseName = "ServletLearning";
     private static final String username = "SA";
     private static final String password = "12345";
 
