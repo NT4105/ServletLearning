@@ -1,32 +1,28 @@
-use Servlethw1;
 create table Account
 (
-    id int identity(1,1),
-    username varchar(255) unique,
-    [password] varchar(255),
-    [role] int,
-    primary key(id)
+    id INT PRIMARY KEY IDENTITY(1,1),
+    username NVARCHAR(50) NOT NULL UNIQUE,
+    password NVARCHAR(50) NOT NULL,
+    role INT NOT NULL DEFAULT 0
+    -- 0: CUSTOMER, 1: STAFF
 );
 
 create table Category
 (
-    id int identity(1,1),
-    [name] varchar(255) unique,
-    primary key(id)
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name NVARCHAR(100) NOT NULL
 );
 
 create table Product
 (
-    id int identity(1,1),
-    [name] varchar(255),
-    price float,
-    product_year int,
-    [image] varchar(500),
-    category_id int,
-    primary key(id),
-    foreign key (category_id) references Category(id)
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name NVARCHAR(100) NOT NULL,
+    price FLOAT NOT NULL,
+    product_year INT NOT NULL,
+    image NVARCHAR(255),
+    category_id INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES Category(id)
 );
-
 
 INSERT INTO Category
     ([name])
